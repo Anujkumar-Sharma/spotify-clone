@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "npm install && echo 'Building javascript files...' && rm -rf dist && tsc && echo '...Javascript files finished building.'",
+    "build": "npm install && echo 'Building javascript files...' && tsc && echo '...Javascript files finished building.'",
     "dev": "tsnd src/server.ts",
     "start": "node dist/server.js"
   },
