@@ -8,11 +8,10 @@ export const getCurrentTimePlus55Minutes = () => {
 
 const getHeaders = async () => {
   let spotifyData = await Spotify.findOne();
-  if (!isEndTimeGreaterThanCurrentTime(spotifyData.endTime)) {
+  if (!spotifyData || !isEndTimeGreaterThanCurrentTime(spotifyData?.endTime)) {
     await generateToken();
     spotifyData = await Spotify.findOne();
   }
-
   return {
     Authorization: `Bearer ${spotifyData.token}`,
   };
@@ -78,27 +77,23 @@ export const generateToken = async () => {
   };
 
   // Make the POST request to get the token
-  fetch(tokenUrl, {
+  let response = await fetch(tokenUrl, {
     method: "POST",
     headers: tokenHeader,
     body: data,
-  })
-    .then((response) => response.json())
-    .then(async (token) => {
-      console.log(token);
-      const spotifyData = await Spotify.findOne();
-      if (!spotifyData) {
-        await Spotify.create({
-          token: token.access_token,
-          endTime: getCurrentTimePlus55Minutes(),
-        });
-      } else if (!isEndTimeGreaterThanCurrentTime(spotifyData.endTime)) {
-        spotifyData.token = token.access_token;
-        spotifyData.endTime = getCurrentTimePlus55Minutes();
-        await spotifyData.save();
-      }
-    })
-    .catch((error) => {
-      console.error("Error fetching token:", error);
+  });
+
+  const token = await response.json();
+  const spotifyData = await Spotify.findOne();
+  if (!spotifyData) {
+    await Spotify.create({
+      token: token.access_token,
+      endTime: getCurrentTimePlus55Minutes(),
     });
+
+  } else if (!isEndTimeGreaterThanCurrentTime(spotifyData.endTime)) {
+    spotifyData.token = token.access_token;
+    spotifyData.endTime = getCurrentTimePlus55Minutes();
+    await spotifyData.save();
+  }
 };
